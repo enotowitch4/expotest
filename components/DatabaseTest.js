@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, StyleSheet 
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 
+// 1 test
 export function DatabaseTest() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
