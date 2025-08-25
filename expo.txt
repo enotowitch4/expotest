@@ -1,2 +1,10 @@
 npx expo start --web --clear
 npx expo export (-> builds project for Netlify)
+
+===
+FIX for page not found in live mode Netlify:
+
+In your project’s public/ (or root of your dist/ if that’s what you deploy), create a file called _redirects with text:
+
+/*    /index.html   200
+===
