@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { useAuth } from '../../components/AuthProvider';
-import { NAVIGATION_ITEMS } from '../../lib/constants';
-import { LogOut, User, Home, BarChart3, ClipboardList, UserCheck, Settings } from 'lucide-react-native';
+import { ALL_NAVIGATION_ITEMS, CREATOR_NAVIGATION_ITEMS } from '../../lib/constants';
+import { LogOut, User, Home, BarChart3, ClipboardList, UserCheck, Settings, ListTodo } from 'lucide-react-native';
 import { View, Text, StyleSheet } from 'react-native';
 import Button from '../../components/ui/shared/Button';
 
@@ -39,6 +39,11 @@ const CustomHeader = () => {
 };
 
 export default function TabsLayout() {
+  const { isAdmin, user } = useAuth();
+  
+  // Choose navigation items based on user role
+  const navigationItems = isAdmin() ? ALL_NAVIGATION_ITEMS : CREATOR_NAVIGATION_ITEMS;
+  
   return (
     <>
       <CustomHeader />
@@ -57,19 +62,24 @@ export default function TabsLayout() {
           tabBarInactiveTintColor: '#6b7280',
         }}
       >
-        {NAVIGATION_ITEMS.map((item) => {
+        {ALL_NAVIGATION_ITEMS.map((item) => {
+          // Check if this tab should be visible for current user
+          const shouldShow = navigationItems.some(navItem => navItem.id === item.id);
+          
           return (
             <Tabs.Screen
               key={item.id}
               name={item.id}
               options={{
                 title: item.label,
+                tabBarButton: shouldShow ? undefined : () => null, // Hide tab completely if not allowed
                 tabBarIcon: ({ color, size }) => {
                   // Map icon names to components
                   const iconMap = {
                     'Home': Home,
                     'BarChart3': BarChart3,
                     'ClipboardList': ClipboardList,
+                    'ListTodo': ListTodo,
                     'UserCheck': UserCheck,
                     'Settings': Settings,
                     'User': User,

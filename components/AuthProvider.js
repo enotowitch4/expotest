@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { authCrud, profileCrud } from '../lib/crud';
-import { DEFAULT_USER_LEVEL } from '../lib/constants';
+import { DEFAULT_USER_LEVEL, USER_LEVELS } from '../lib/constants';
 
 const AuthContext = createContext({
   user: null,
@@ -11,7 +11,8 @@ const AuthContext = createContext({
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
-  resetPassword: async () => {}
+  resetPassword: async () => {},
+  isAdmin: () => false
 });
 
 export const useAuth = () => {
@@ -28,6 +29,13 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Simple admin check - enenotowitch@gmail.com is always admin
+  const isAdmin = (userEmail) => {
+    const isAdminUser = userEmail === 'enenotowitch@gmail.com';
+    console.log('🔍 Admin check:', { userEmail, isAdminUser });
+    return isAdminUser;
+  };
+
   // Get user profile when user changes
   const fetchUserProfile = async (userId) => {
     if (!userId) {
@@ -42,6 +50,10 @@ export const AuthProvider = ({ children }) => {
         // Don't fail the entire auth process if profile fetch fails
         setProfile(null);
       } else {
+        // If user is admin by email, ensure profile has admin role
+        if (profileData && isAdmin(profileData.email)) {
+          profileData.user_level = USER_LEVELS.ADMIN;
+        }
         setProfile(profileData);
       }
     } catch (error) {
@@ -308,7 +320,8 @@ export const AuthProvider = ({ children }) => {
     signIn,
     signUp,
     signOut,
-    resetPassword
+    resetPassword,
+    isAdmin: () => isAdmin(user?.email)
   };
 
   return (
