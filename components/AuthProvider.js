@@ -51,6 +51,43 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Validate session and refresh if needed
+  const validateAndRefreshSession = async (currentSession) => {
+    if (!currentSession) return null;
+
+    try {
+      // Check if token is expired
+      const now = Math.floor(Date.now() / 1000);
+      const expiresAt = currentSession.expires_at;
+      
+      if (!expiresAt || now >= expiresAt) {
+        console.log('⚠️ Session is expired');
+        return null;
+      }
+
+      // Check if token is about to expire (within 5 minutes)
+      const fiveMinutesFromNow = now + (5 * 60);
+
+      if (expiresAt < fiveMinutesFromNow) {
+        console.log('🔄 Session expiring soon, refreshing...');
+        const { data: { session: refreshedSession }, error } = await supabase.auth.refreshSession();
+        
+        if (error) {
+          console.log('❌ Failed to refresh session:', error.message);
+          return null;
+        }
+        
+        console.log('✅ Session refreshed successfully');
+        return refreshedSession;
+      }
+
+      return currentSession;
+    } catch (error) {
+      console.log('❌ Error validating/refreshing session:', error.message);
+      return null;
+    }
+  };
+
   // Initialize auth state
   useEffect(() => {
     let isInitialized = false;
@@ -61,37 +98,49 @@ export const AuthProvider = ({ children }) => {
         console.log('🔄 Initializing auth...');
         setLoading(true);
         
-        // Get initial session
-        const { session: initialSession } = await authCrud.getSession();
-        console.log('📋 Initial session:', !!initialSession, initialSession?.user?.id);
+
         
-        // Check if session is valid and not expired
+        // Get initial session
+        const { session: initialSession, error: sessionError } = await authCrud.getSession();
+        
+        if (sessionError) {
+          console.log('❌ Error getting initial session:', sessionError.message);
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          isInitialized = true;
+          setLoading(false);
+          return;
+        }
+        
+        console.log('📋 Initial session found:', !!initialSession, initialSession?.user?.id);
+        
         if (initialSession?.user && initialSession?.access_token) {
-          // Check if token is expired
-          const now = Math.floor(Date.now() / 1000);
-          const expiresAt = initialSession.expires_at;
+          // Validate and potentially refresh the session
+          const validSession = await validateAndRefreshSession(initialSession);
           
-          if (expiresAt && now < expiresAt) {
-            setSession(initialSession);
-            setUser(initialSession.user);
+          if (validSession) {
+            setSession(validSession);
+            setUser(validSession.user);
             
             console.log('👤 Fetching user profile...');
-            await fetchUserProfile(initialSession.user.id);
+            await fetchUserProfile(validSession.user.id);
+            console.log('✅ Auth initialization complete with valid session');
           } else {
-            console.log('⚠️ Session expired, clearing auth state');
+            console.log('⚠️ Session validation failed, clearing auth state');
             setSession(null);
             setUser(null);
             setProfile(null);
           }
         } else {
           // No valid session
+          console.log('ℹ️ No valid session found');
           setSession(null);
           setUser(null);
           setProfile(null);
         }
         
         isInitialized = true;
-        console.log('✅ Auth initialization complete');
         setLoading(false);
       } catch (error) {
         console.log('❌ Error initializing auth:', error.message);
@@ -107,7 +156,7 @@ export const AuthProvider = ({ children }) => {
         isInitialized = true;
         setLoading(false);
       }
-    }, 10000); // 10 second timeout
+    }, 15000); // 15 second timeout
 
     initializeAuth();
 
@@ -118,18 +167,32 @@ export const AuthProvider = ({ children }) => {
         
         // Only handle auth state changes after initial setup
         if (isInitialized) {
-          setSession(session);
-          setUser(session?.user || null);
-          
-          if (session?.user) {
-            await fetchUserProfile(session.user.id);
-            console.log('✅ Redirecting to Dashboard...');
-          } else {
-            setProfile(null);
-            console.log('✅ User signed out, clearing profile');
+          try {
+            if (event === 'SIGNED_IN') {
+              setSession(session);
+              setUser(session?.user || null);
+              
+              if (session?.user) {
+                await fetchUserProfile(session.user.id);
+                console.log('✅ User authenticated successfully');
+              }
+            } else if (event === 'SIGNED_OUT') {
+              setSession(null);
+              setUser(null);
+              setProfile(null);
+              console.log('✅ User signed out successfully');
+            } else if (event === 'TOKEN_REFRESHED') {
+              // Handle token refresh
+              setSession(session);
+              setUser(session?.user || null);
+              console.log('✅ Token refreshed successfully');
+            }
+            
+            setLoading(false);
+          } catch (error) {
+            console.log('❌ Error handling auth state change:', error.message);
+            setLoading(false);
           }
-          
-          setLoading(false);
         }
       }
     );
@@ -143,9 +206,11 @@ export const AuthProvider = ({ children }) => {
   // Sign in function
   const signIn = async (email, password) => {
     try {
+      setLoading(true);
       const { data, error } = await authCrud.signIn(email, password);
       
       if (error) {
+        setLoading(false);
         return { success: false, error: error.message };
       }
       
@@ -153,6 +218,7 @@ export const AuthProvider = ({ children }) => {
       return { success: true, data };
     } catch (error) {
       console.log('❌ Sign in error:', error.message);
+      setLoading(false);
       return { success: false, error: error.message };
     }
   };
@@ -160,12 +226,15 @@ export const AuthProvider = ({ children }) => {
   // Sign up function
   const signUp = async (email, password, userLevel = DEFAULT_USER_LEVEL) => {
     try {
+      setLoading(true);
       const { data, error } = await authCrud.signUp(email, password, userLevel);
       
       if (error) {
+        setLoading(false);
         return { success: false, error: error.message };
       }
       
+      setLoading(false);
       return { 
         success: true, 
         data,
@@ -173,10 +242,9 @@ export const AuthProvider = ({ children }) => {
       };
     } catch (error) {
       console.log('❌ Sign up error:', error.message);
+      setLoading(false);
       return { success: false, error: error.message };
     }
-    // Don't set loading to false here - let onAuthStateChange handle it for successful auth
-    // or let component handle it for email confirmation cases
   };
 
   // Sign out function
@@ -195,10 +263,12 @@ export const AuthProvider = ({ children }) => {
       
       if (error) {
         console.log('⚠️ Server sign out failed, but local state cleared:', error.message);
+        setLoading(false);
         return { success: false, error: error.message };
       }
       
       console.log('✅ Sign out completed successfully');
+      setLoading(false);
       return { success: true };
     } catch (error) {
       console.log('❌ Sign out error:', error.message);
@@ -206,9 +276,8 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setSession(null);
       setProfile(null);
-      return { success: false, error: error.message };
-    } finally {
       setLoading(false);
+      return { success: false, error: error.message };
     }
   };
 
