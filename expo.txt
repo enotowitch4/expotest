@@ -1,1 +1,2 @@
 npx expo start --web --clear
+npx expo export (-> builds project for Netlify)

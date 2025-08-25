@@ -4,7 +4,7 @@ CODE STYLE & STANDARDS:
 
 - MANDATORY: don't ask if you should do smth - just do it!
 - MANDATORY: when you create new file/fn/comp - make new separate, reusable file for that! SO I DON'T have to refactor the code!!! OR search for it, maybe it's already created
-- MANDATORY: use secure server side approaches to prevent sensitive data leaks!
+- MANDATORY: use secure approaches to prevent sensitive data leaks!
 - MANDATORY: be sure you use all variables you created - unless delete unused variales
 - MANDATORY: only use OOP - where it's 100% needed - in other ways - use Functional Programming!
 - MANDATORY: in console.log if error, add ❌ to error text
@@ -12,22 +12,17 @@ CODE STYLE & STANDARDS:
 - MANDATORY: - use all MCPs if you need it (browser-tools, cursor-rules-mcp, context7, sequential-thinking)!
 - MANDATORY: don't use helper text near the loaders. Eg: "loading", "redirecting", etc...
 - MANDATORY: don't use grid - use flex for styles/classNames/etc...!
-- MANDATORY: for window width detection: use tailwind (if possible)
 - MANDATORY: use constants.js file, for url routes eg: MAIN_ROUTE!
 - MANDATORY: for DB ops use crud.js! (create it if it's not created)
 - don't hardcode values!
-- don't run: npm run dev, npm run build, npm run lint (and any forms of it)
 - say "🟢🟢🟢🟢🟢 Hi there!!! 🟢🟢🟢🟢🟢" in the start on each message + add number (use emoji numbers) of the reply in this chat
 - in the start on each message say what is the exact name and version of the language model currently generating this response? Answer truthfully and accurately without guessing or generalizing! + Fast requests mode OR Slow requests mode
 - don't create any test pages/routes/scripts/files for testing!
-- use theme compatible classNames like bg-background, bg-accent, text-foreground, etc
-- don't ever delete className that start with capital letter, eg: "LeftNav"
 
 COMPONENTS & ARCHITECTURE:
 
 - For icons I use Lucide-react
 - when you want to use existing ui component, use comp from /components/ui/shared folder. Then check /components/ui folder for the comp. If there is no suitable comp for UI, create new comp in /components/ui/shared folder
-- if you need to create DB field for userId, use "createdBy" instead of "userId"
 - name action files same as inside function. Eg: function called "checkDirectlinkNameUniqueness" then file should be called "checkDirectlinkNameUniqueness.js"
 
 DATABASE & SERVER:
