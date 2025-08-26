@@ -4,10 +4,12 @@ import { useAdminAccess } from '../../components/useAdminAccess';
 import { LogOut, User, Home, BarChart3, ClipboardList, UserCheck, Settings, ListTodo } from 'lucide-react-native';
 import { View, Text, StyleSheet } from 'react-native';
 import Button from '../../components/ui/shared/Button';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Custom header component with logout
 const CustomHeader = () => {
   const { user, signOut, loading } = useAuth();
+  const insets = useSafeAreaInsets();
 
   const handleSignOut = async () => {
     console.log('🔄 Dashboard sign out called');
@@ -21,7 +23,7 @@ const CustomHeader = () => {
   };
 
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) }]}>
       <View style={styles.userInfo}>
         <User size={20} color="#666" />
         <Text style={styles.userEmail}>{user?.email || 'User'}</Text>
@@ -41,6 +43,7 @@ const CustomHeader = () => {
 export default function TabsLayout() {
   const { user, loading } = useAuth();
   const { isAdmin } = useAdminAccess();
+  const insets = useSafeAreaInsets();
 
   return (
     <>
@@ -52,9 +55,9 @@ export default function TabsLayout() {
             backgroundColor: '#ffffff',
             borderTopWidth: 1,
             borderTopColor: '#e9ecef',
-            paddingBottom: 5,
+            paddingBottom: Math.max(insets.bottom, 5),
             paddingTop: 5,
-            height: 60,
+            height: 60 + insets.bottom,
           },
           tabBarActiveTintColor: '#3b82f6',
           tabBarInactiveTintColor: '#6b7280',

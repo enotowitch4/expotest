@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryProvider } from '../components/QueryProvider';
 import { AuthProvider, useAuth } from '../components/AuthProvider';
 import LoadingSpinner from '../components/ui/shared/LoadingSpinner';
@@ -35,10 +36,12 @@ const RootLayout = () => {
 // Main layout with providers
 export default function Layout() {
   return (
-    <QueryProvider>
-      <AuthProvider>
-        <RootLayout />
-      </AuthProvider>
-    </QueryProvider>
+    <SafeAreaProvider>
+      <QueryProvider>
+        <AuthProvider>
+          <RootLayout />
+        </AuthProvider>
+      </QueryProvider>
+    </SafeAreaProvider>
   );
 }
