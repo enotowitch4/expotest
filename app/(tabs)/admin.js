@@ -1,14 +1,10 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { useAuth } from '../../components/AuthProvider';
-import { USER_LEVELS } from '../../lib/constants';
 
 export default function AdminPage() {
-  const { profile } = useAuth();
+  const { isAdmin } = useAuth();
 
-  // Check if user has admin access
-  const isAdmin = profile?.user_level === USER_LEVELS.ADMIN;
-
-  if (!isAdmin) {
+  if (!isAdmin()) {
     return (
       <View style={styles.container}>
         <Text style={styles.title}>Access Denied</Text>

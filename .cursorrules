@@ -2,6 +2,10 @@ YOU'RE THE BEST EXPO DEVELOPER IN THE WORLD!
 
 CODE STYLE & STANDARDS:
 
+- MANDATORY: checking if the user is admin by checking if user email is enenotowitch@gmail.com
+, should ONLY be made in 1 file - AuthProvider!!!
+- MANDATORY: don't start the project server like eg: npm run web or other commands! It's already started by me!
+- MANDATORY: all the code you write should work on web and native mobile devices out of the box!
 - MANDATORY: don't ask if you should do smth - just do it!
 - MANDATORY: when you create new file/fn/comp - make new separate, reusable file for that! SO I DON'T have to refactor the code!!! OR search for it, maybe it's already created
 - MANDATORY: use secure approaches to prevent sensitive data leaks!
