@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { useAuth } from '../../components/AuthProvider';
-import { ALL_NAVIGATION_ITEMS, CREATOR_NAVIGATION_ITEMS } from '../../lib/constants';
+import { useAdminAccess } from '../../components/useAdminAccess';
 import { LogOut, User, Home, BarChart3, ClipboardList, UserCheck, Settings, ListTodo } from 'lucide-react-native';
 import { View, Text, StyleSheet } from 'react-native';
 import Button from '../../components/ui/shared/Button';
@@ -39,11 +39,9 @@ const CustomHeader = () => {
 };
 
 export default function TabsLayout() {
-  const { isAdmin, user } = useAuth();
-  
-  // Choose navigation items based on user role
-  const navigationItems = isAdmin() ? ALL_NAVIGATION_ITEMS : CREATOR_NAVIGATION_ITEMS;
-  
+  const { user, loading } = useAuth();
+  const { isAdmin } = useAdminAccess();
+
   return (
     <>
       <CustomHeader />
@@ -60,37 +58,71 @@ export default function TabsLayout() {
           },
           tabBarActiveTintColor: '#3b82f6',
           tabBarInactiveTintColor: '#6b7280',
+          tabBarIconStyle: {
+            marginBottom: 0,
+          },
+          tabBarLabelStyle: {
+            marginTop: 0,
+            fontSize: 12,
+          },
         }}
       >
-        {ALL_NAVIGATION_ITEMS.map((item) => {
-          // Check if this tab should be visible for current user
-          const shouldShow = navigationItems.some(navItem => navItem.id === item.id);
-          
-          return (
-            <Tabs.Screen
-              key={item.id}
-              name={item.id}
-              options={{
-                title: item.label,
-                tabBarButton: shouldShow ? undefined : () => null, // Hide tab completely if not allowed
-                tabBarIcon: ({ color, size }) => {
-                  // Map icon names to components
-                  const iconMap = {
-                    'Home': Home,
-                    'BarChart3': BarChart3,
-                    'ClipboardList': ClipboardList,
-                    'ListTodo': ListTodo,
-                    'UserCheck': UserCheck,
-                    'Settings': Settings,
-                    'User': User,
-                  };
-                  const IconComponent = iconMap[item.icon];
-                  return IconComponent ? <IconComponent size={size} color={color} /> : null;
-                },
-              }}
-            />
-          );
-        })}
+        {/* Always visible tabs for all users */}
+        <Tabs.Screen
+          name="welcome"
+          options={{
+            title: 'Welcome',
+            tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="tasks"
+          options={{
+            title: 'Tasks',
+            tabBarIcon: ({ color, size }) => <ClipboardList size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Profile',
+            tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
+          }}
+        />
+
+        {/* Admin-only tabs - always defined but conditionally visible */}
+        <Tabs.Screen
+          name="stats"
+          options={{
+            title: 'Stats',
+            tabBarIcon: ({ color, size }) => <BarChart3 size={size} color={color} />,
+            tabBarButton: (!loading && isAdmin && user?.email) ? undefined : () => null,
+          }}
+        />
+        <Tabs.Screen
+          name="manage"
+          options={{
+            title: 'Manage',
+            tabBarIcon: ({ color, size }) => <ListTodo size={size} color={color} />,
+            tabBarButton: (!loading && isAdmin && user?.email) ? undefined : () => null,
+          }}
+        />
+        <Tabs.Screen
+          name="creator-info"
+          options={{
+            title: 'Creator Info',
+            tabBarIcon: ({ color, size }) => <UserCheck size={size} color={color} />,
+            tabBarButton: (!loading && isAdmin && user?.email) ? undefined : () => null,
+          }}
+        />
+        <Tabs.Screen
+          name="admin"
+          options={{
+            title: 'Admin',
+            tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
+            tabBarButton: (!loading && isAdmin && user?.email) ? undefined : () => null,
+          }}
+        />
       </Tabs>
     </>
   );

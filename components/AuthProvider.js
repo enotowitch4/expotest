@@ -31,9 +31,7 @@ export const AuthProvider = ({ children }) => {
 
   // Simple admin check - enenotowitch@gmail.com is always admin
   const isAdmin = (userEmail) => {
-    const isAdminUser = userEmail === 'enenotowitch@gmail.com';
-    console.log('🔍 Admin check:', { userEmail, isAdminUser });
-    return isAdminUser;
+    return userEmail === 'enenotowitch@gmail.com';
   };
 
   // Get user profile when user changes
@@ -321,7 +319,10 @@ export const AuthProvider = ({ children }) => {
     signUp,
     signOut,
     resetPassword,
-    isAdmin: () => isAdmin(user?.email)
+    isAdmin: () => {
+      const userEmail = user?.email || profile?.email;
+      return isAdmin(userEmail);
+    }
   };
 
   return (
